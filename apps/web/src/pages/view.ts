@@ -48,19 +48,33 @@ export async function renderView(root: HTMLElement): Promise<void> {
         status.set('Provide ?fileId= or ?url= in the URL.', 'warn');
         return;
       }
-      sourceInfo.innerHTML = `Loading <code>${target.fileId}</code>…`;
+      const log = (msg: string) => {
+        sourceInfo.innerHTML = `<code>${target!.fileId}</code> — ${msg}`;
+        status.set(msg, 'info');
+      };
+
+      log('Fetching Drive metadata…');
       const meta = await getFileMetadata(target.fileId, { accessToken, resourceKey: target.resourceKey });
+      log(`Metadata OK: name="${meta.name}", mime="${meta.mimeType}", size=${meta.size ?? '?'}.`);
+
       const summary = summarizeElpxFile(meta);
       if (!summary.isLikelyElpx) {
         status.set(`Cannot open this file: ${summary.rejectionReason}`, 'error');
         sourceInfo.innerHTML = `<code>${target.fileId}</code> — ${summary.rejectionReason}`;
         return;
       }
+
+      log('Downloading file from Drive…');
       const blob = await downloadFile(target.fileId, { accessToken, resourceKey: target.resourceKey });
+      log(`Downloaded ${blob.size} bytes. Extracting…`);
+
       const bytes = await blob.arrayBuffer();
       const loaded = loadElpx(bytes);
+      log(`Extracted ${loaded.entries.files.size} files. Rendering…`);
+
       await renderElpx({ container: previewHost, loaded, scorm12: null, scorm2004: null, title: 'Standalone viewer' });
-      status.set('Loaded.', 'success');
+      status.set(`Loaded "${meta.name}".`, 'success');
+      sourceInfo.innerHTML = `<code>${target.fileId}</code> — ${meta.name}`;
     } catch (error) {
       status.set(formatError(error), 'error');
     }
