@@ -15,8 +15,7 @@ export async function ensureElpxServiceWorker(): Promise<ServiceWorkerRegistrati
     registrationPromise = navigator.serviceWorker.register(SW_PATH, { scope: SW_SCOPE });
   }
   const registration = await registrationPromise;
-  if (registration.installing) await waitUntilActivated(registration);
-  await navigator.serviceWorker.ready;
+  await waitUntilActivated(registration);
   return registration;
 }
 
@@ -29,23 +28,17 @@ export interface RegisterSessionResult {
  * Push a loaded .elpx into the service worker so it can serve assets at
  * `<base>/elpx-runtime/{sessionId}/...`. Returns the URL that should be set
  * as the iframe `src`.
+ *
+ * NOTE: We talk to `registration.active` directly. We do NOT wait for the SW
+ * to "control" the current page — the page that hosts this code lives outside
+ * `/elpx-runtime/` and will never be controlled. Only the iframe will be
+ * controlled (via fetch interception in scope), which is what we need.
  */
 export async function registerElpxSession(loaded: LoadedElpx): Promise<RegisterSessionResult> {
-  await ensureElpxServiceWorker();
-  const controller = navigator.serviceWorker.controller;
-  if (!controller) {
-    // First navigation after registration — wait for control.
-    await new Promise<void>((resolve) => {
-      const handler = () => {
-        navigator.serviceWorker.removeEventListener('controllerchange', handler);
-        resolve();
-      };
-      navigator.serviceWorker.addEventListener('controllerchange', handler);
-    });
-  }
-  const target = navigator.serviceWorker.controller;
+  const registration = await ensureElpxServiceWorker();
+  const target = registration.active ?? registration.waiting ?? registration.installing;
   if (!target) {
-    throw new Error('Service worker did not take control; reload the page and retry.');
+    throw new Error('Service worker registration has no worker; reload the page and retry.');
   }
 
   // Inject the SCORM bridge into index.html so eXeLearning content sees it
@@ -75,9 +68,10 @@ export async function registerElpxSession(loaded: LoadedElpx): Promise<RegisterS
 }
 
 export async function clearElpxSession(sessionId: string): Promise<void> {
-  const controller = navigator.serviceWorker?.controller;
-  if (!controller) return;
-  await postWithReply(controller, { type: 'CLEAR_SESSION', sessionId }, []);
+  const registration = await navigator.serviceWorker?.getRegistration(SW_SCOPE);
+  const target = registration?.active ?? registration?.waiting ?? null;
+  if (!target) return;
+  await postWithReply(target, { type: 'CLEAR_SESSION', sessionId }, []);
 }
 
 function postWithReply(
@@ -99,11 +93,21 @@ function postWithReply(
 }
 
 function waitUntilActivated(registration: ServiceWorkerRegistration): Promise<void> {
-  return new Promise((resolve) => {
-    const installing = registration.installing;
-    if (!installing) return resolve();
-    installing.addEventListener('statechange', () => {
-      if (installing.state === 'activated') resolve();
+  return new Promise((resolve, reject) => {
+    if (registration.active) return resolve();
+    const worker = registration.installing ?? registration.waiting;
+    if (!worker) return resolve();
+    const timer = window.setTimeout(() => {
+      reject(new Error('Service worker activation timed out after 10s.'));
+    }, 10_000);
+    worker.addEventListener('statechange', () => {
+      if (worker.state === 'activated') {
+        window.clearTimeout(timer);
+        resolve();
+      } else if (worker.state === 'redundant') {
+        window.clearTimeout(timer);
+        reject(new Error('Service worker became redundant during activation.'));
+      }
     });
   });
 }
