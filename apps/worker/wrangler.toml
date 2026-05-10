@@ -9,7 +9,7 @@ compatibility_flags = ["nodejs_compat"]
 binding = "DB"
 database_name = "gclassroom_exelearning"
 # Replace with the database id printed by `wrangler d1 create gclassroom_exelearning`.
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "6f205de4-cd74-4fb1-89b9-eb062b35f1fb"
 
 # Public configuration vars (non-secret) ---------------------------------------
 [vars]

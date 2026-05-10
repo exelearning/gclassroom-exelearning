@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm --workspace apps/web run typecheck
       - run: npm --workspace apps/web run test
       - name: Build frontend

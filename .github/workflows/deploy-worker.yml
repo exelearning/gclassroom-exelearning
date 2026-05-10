@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm --workspace apps/worker run typecheck
       - run: npm --workspace apps/worker run test
       - name: Apply D1 migrations
