@@ -52,6 +52,32 @@ describe('summarizeElpxFile', () => {
       id: 'a', name: 'L.ELPX', mimeType: 'application/zip',
     }).isLikelyElpx).toBe(true);
   });
+
+  it('accepts the legacy application/x-zip MIME', () => {
+    expect(summarizeElpxFile({
+      id: 'a', name: 'lesson.elpx', mimeType: 'application/x-zip',
+    }).isLikelyElpx).toBe(true);
+  });
+
+  it('rejects Drive folders with a clear message', () => {
+    const summary = summarizeElpxFile({
+      id: 'a',
+      name: 'exelearningsamples',
+      mimeType: 'application/vnd.google-apps.folder',
+    });
+    expect(summary.isLikelyElpx).toBe(false);
+    expect(summary.rejectionReason).toMatch(/folder/i);
+  });
+
+  it('rejects Google Docs / Sheets natives with a clear message', () => {
+    const summary = summarizeElpxFile({
+      id: 'a',
+      name: 'My doc',
+      mimeType: 'application/vnd.google-apps.document',
+    });
+    expect(summary.isLikelyElpx).toBe(false);
+    expect(summary.rejectionReason).toMatch(/native Google file/i);
+  });
 });
 
 describe('extractDriveFileId', () => {

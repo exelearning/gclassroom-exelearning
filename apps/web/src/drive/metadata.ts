@@ -31,9 +31,12 @@ export interface ElpxFileSummary {
 const ELPX_LIKE_MIME = new Set([
   'application/octet-stream',
   'application/zip',
+  'application/x-zip',
   'application/x-zip-compressed',
   'multipart/x-zip',
 ]);
+
+const GOOGLE_FOLDER_MIME = 'application/vnd.google-apps.folder';
 
 /**
  * Decide whether a Drive file looks like a `.elpx` package, without yet
@@ -47,9 +50,13 @@ export function summarizeElpxFile(metadata: DriveFileMetadata): ElpxFileSummary 
   const mimeOk = ELPX_LIKE_MIME.has(metadata.mimeType);
   const canDownload = metadata.capabilities?.canDownload !== false;
 
-  let isLikelyElpx = hasElpxExtension && mimeOk && canDownload;
+  const isFolder = metadata.mimeType === GOOGLE_FOLDER_MIME;
+  const isGoogleNative = metadata.mimeType?.startsWith('application/vnd.google-apps.') ?? false;
+  const isLikelyElpx = !isFolder && !isGoogleNative && hasElpxExtension && mimeOk && canDownload;
   let rejectionReason: string | undefined;
-  if (!hasElpxExtension) rejectionReason = 'File name does not end in .elpx';
+  if (isFolder) rejectionReason = 'This is a folder, not a file. Open the folder and pick an .elpx inside.';
+  else if (isGoogleNative) rejectionReason = `This is a native Google file (${metadata.mimeType}); .elpx files are ZIP-based and cannot be Google Docs/Sheets/Slides.`;
+  else if (!hasElpxExtension) rejectionReason = 'File name does not end in .elpx';
   else if (!mimeOk) rejectionReason = `Unsupported MIME type: ${metadata.mimeType}`;
   else if (!canDownload) rejectionReason = 'Drive denies download for this file';
 

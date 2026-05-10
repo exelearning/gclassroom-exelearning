@@ -22,10 +22,12 @@ export const CLASSROOM_STUDENT_SCOPES = [
 export const DRIVE_UPLOAD_FOLDER_NAME = 'eXeLearning Classroom';
 
 // MIME types the Picker should accept. Drive does not have a canonical .elpx
-// type — files arrive most often as octet-stream or zip.
+// type — files arrive most often as octet-stream, zip, or one of the legacy
+// "x-zip" / "x-zip-compressed" variants depending on how they were uploaded.
 export const ELPX_MIME_TYPES = [
   'application/octet-stream',
   'application/zip',
+  'application/x-zip',
   'application/x-zip-compressed',
 ];
 

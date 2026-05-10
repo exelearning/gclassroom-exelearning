@@ -1,7 +1,7 @@
 import { DRIVE_FILE_SCOPE, DRIVE_READONLY_SCOPE } from '../config';
 import { getTokenClient } from '../auth/google-token-client';
-import { downloadFile } from '../drive/drive-api';
-import { extractDriveFileId } from '../drive/metadata';
+import { downloadFile, getFileMetadata } from '../drive/drive-api';
+import { extractDriveFileId, summarizeElpxFile } from '../drive/metadata';
 import { loadElpx } from '../viewer/elpx-loader';
 import { renderElpx } from '../viewer/iframe-renderer';
 import { StatusView, formatError, requireElement } from '../ui/status';
@@ -49,6 +49,13 @@ export async function renderView(root: HTMLElement): Promise<void> {
         return;
       }
       sourceInfo.innerHTML = `Loading <code>${target.fileId}</code>…`;
+      const meta = await getFileMetadata(target.fileId, { accessToken, resourceKey: target.resourceKey });
+      const summary = summarizeElpxFile(meta);
+      if (!summary.isLikelyElpx) {
+        status.set(`Cannot open this file: ${summary.rejectionReason}`, 'error');
+        sourceInfo.innerHTML = `<code>${target.fileId}</code> — ${summary.rejectionReason}`;
+        return;
+      }
       const blob = await downloadFile(target.fileId, { accessToken, resourceKey: target.resourceKey });
       const bytes = await blob.arrayBuffer();
       const loaded = loadElpx(bytes);
