@@ -1,0 +1,27 @@
+name = "gclassroom-exelearning"
+main = "src/index.ts"
+compatibility_date = "2024-11-06"
+compatibility_flags = ["nodejs_compat"]
+
+# Bindings ---------------------------------------------------------------------
+# D1 database for attachments, attempts, and encrypted teacher tokens.
+[[d1_databases]]
+binding = "DB"
+database_name = "gclassroom_exelearning"
+# Replace with the database id printed by `wrangler d1 create gclassroom_exelearning`.
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+# Public configuration vars (non-secret) ---------------------------------------
+[vars]
+GOOGLE_OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token"
+GOOGLE_OAUTH_REVOKE_URL = "https://oauth2.googleapis.com/revoke"
+CLASSROOM_API_BASE = "https://classroom.googleapis.com"
+
+# Default origins allowed to call the worker. Override in the Cloudflare
+# dashboard for production.
+ALLOWED_FRONTEND_ORIGINS = "http://localhost:5173,https://exelearning.github.io"
+
+# Secrets (set with `wrangler secret put <NAME>`) ------------------------------
+# - GOOGLE_OAUTH_CLIENT_ID
+# - GOOGLE_OAUTH_CLIENT_SECRET
+# - TOKEN_VAULT_KEY               # 32-byte base64 AES-GCM key

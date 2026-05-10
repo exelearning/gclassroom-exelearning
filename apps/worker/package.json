@@ -1,0 +1,25 @@
+{
+  "name": "@gclassroom-exelearning/worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "build": "tsc -p tsconfig.json --noEmit",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "db:migrate:local": "wrangler d1 execute gclassroom_exelearning --file=src/db/schema.sql --local",
+    "db:migrate:remote": "wrangler d1 execute gclassroom_exelearning --file=src/db/schema.sql --remote"
+  },
+  "dependencies": {
+    "hono": "^4.6.10"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241106.0",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4",
+    "wrangler": "^3.85.0"
+  }
+}

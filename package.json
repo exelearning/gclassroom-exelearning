@@ -1,0 +1,27 @@
+{
+  "name": "gclassroom-exelearning",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Google Classroom add-on that attaches eXeLearning .elpx resources as graded activities.",
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "workspaces": [
+    "apps/web",
+    "apps/worker"
+  ],
+  "scripts": {
+    "dev": "npm --workspace apps/web run dev",
+    "dev:worker": "npm --workspace apps/worker run dev",
+    "build": "npm --workspace apps/web run build && npm --workspace apps/worker run build",
+    "build:web": "npm --workspace apps/web run build",
+    "build:worker": "npm --workspace apps/worker run build",
+    "test": "npm --workspace apps/web run test && npm --workspace apps/worker run test",
+    "test:web": "npm --workspace apps/web run test",
+    "test:worker": "npm --workspace apps/worker run test",
+    "typecheck": "npm --workspace apps/web run typecheck && npm --workspace apps/worker run typecheck",
+    "lint": "npm run typecheck"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

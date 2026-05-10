@@ -1,0 +1,55 @@
+name: Deploy Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm --workspace apps/web run typecheck
+      - run: npm --workspace apps/web run test
+      - name: Build frontend
+        env:
+          VITE_GOOGLE_CLIENT_ID: ${{ vars.VITE_GOOGLE_CLIENT_ID }}
+          VITE_GOOGLE_API_KEY: ${{ vars.VITE_GOOGLE_API_KEY }}
+          VITE_GOOGLE_PICKER_APP_ID: ${{ vars.VITE_GOOGLE_PICKER_APP_ID }}
+          VITE_BACKEND_BASE_URL: ${{ vars.VITE_BACKEND_BASE_URL }}
+        run: npm --workspace apps/web run build
+      - name: Mirror index.html for SPA-style 404s and route folders
+        run: |
+          cp apps/web/dist/index.html apps/web/dist/404.html
+          for r in addon/discovery addon/teacher addon/student addon/review view picker publish; do
+            mkdir -p "apps/web/dist/$r"
+            cp apps/web/dist/index.html "apps/web/dist/$r/index.html"
+          done
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apps/web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

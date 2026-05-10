@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>gclassroom-exelearning</title>
+    <!-- Permissions-Policy: allow this page to embed inside Classroom iframe -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://accounts.google.com https://apis.google.com https://*.googleusercontent.com https://www.googleapis.com; script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com; connect-src 'self' https://accounts.google.com https://apis.google.com https://www.googleapis.com http://localhost:* https://*.workers.dev; frame-src https://accounts.google.com https://docs.google.com https://drive.google.com; img-src 'self' data: blob: https://*.googleusercontent.com; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; child-src 'self' blob:;" />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://apis.google.com/js/api.js" async defer></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
