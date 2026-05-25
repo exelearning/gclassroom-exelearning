@@ -40,7 +40,7 @@ jobs:
             mkdir -p "apps/web/dist/$r"
             cp apps/web/dist/index.html "apps/web/dist/$r/index.html"
           done
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: apps/web/dist
 
