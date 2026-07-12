@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test_and_build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Build production applications
+        run: npm run build
+        env:
+          VITE_GOOGLE_CLIENT_ID: ci-client-id.apps.googleusercontent.com
+          VITE_GOOGLE_API_KEY: ci-api-key
+          VITE_GOOGLE_PICKER_APP_ID: ci-picker-app-id
+          VITE_BACKEND_BASE_URL: https://worker.example.invalid
+
+      - name: Verify frontend bundle
+        run: test -f apps/web/dist/index.html
