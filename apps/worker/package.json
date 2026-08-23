@@ -14,7 +14,7 @@
     "db:migrate:remote": "wrangler d1 execute gclassroom_exelearning --file=src/db/schema.sql --remote"
   },
   "dependencies": {
-    "hono": "^4.13.0"
+    "hono": "^4.13.3"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260820.1",
